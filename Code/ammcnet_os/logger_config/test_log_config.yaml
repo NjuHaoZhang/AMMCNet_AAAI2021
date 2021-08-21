@@ -1,0 +1,41 @@
+disable_existing_loggers: false
+formatters:
+  console_format:
+    format: '%(message)s'
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: console_format
+    level: DEBUG
+    stream: ext://sys.stdout
+  error_file_handler:
+    backupCount: 20
+    class: logging.handlers.RotatingFileHandler
+    encoding: utf8
+    filename: /p300/model_run_result/ano_pred_memory_consist_v1/log_dir/avenue_l_2_alpha_1_lp_0.001_adv_0.05_gdl_1.0_flow_2.0_opL1_2.0_embed_dim_64_n_embed_256_k=2/test_error.log
+    formatter: simple
+    level: ERROR
+    maxBytes: 10485760
+  info_file_handler:
+    backupCount: 20
+    class: logging.handlers.RotatingFileHandler
+    encoding: utf8
+    filename: /p300/model_run_result/ano_pred_memory_consist_v1/log_dir/avenue_l_2_alpha_1_lp_0.001_adv_0.05_gdl_1.0_flow_2.0_opL1_2.0_embed_dim_64_n_embed_256_k=2/test_info.log
+    formatter: simple
+    level: INFO
+    maxBytes: 10485760
+loggers:
+  my_module:
+    handlers:
+    - info_file_handler
+    level: ERROR
+    propagate: false
+root:
+  handlers:
+  - console
+  - info_file_handler
+  - error_file_handler
+  level: INFO
+version: 1
