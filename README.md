@@ -9,7 +9,7 @@ conda env create -f /your_path_to/environment.yaml
 
 ### 2. Download datasets
 Please manually download all datasets from avenue.tar.gz and shanghaitech.tar.gz and tar each tar.gz file, and move them in to data folder.
-You can also download data from xxx. (We will upload the dataset as soon as possible...)
+You can also download data from https://drive.google.com/drive/folders/1gvO-gZO0sf6PrFcox-2lk70xfH7Uzonf?usp=sharing. (We will upload all datasets as soon as possible...)
 
 ```
 1. avenue/ped2/shanghaitech
