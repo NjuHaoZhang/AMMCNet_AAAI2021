@@ -6,7 +6,7 @@ This repo is the official open source of Appearance-Motion Memory Consistency Ne
 
 ```
 # 1. Set up the environment
-conda env create -f /your_path_to/ammcnet_os/environment.yaml
+conda env create -f /your_path_to/environment.yaml
 
 
 # 2. Configure some parameters
