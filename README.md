@@ -19,14 +19,14 @@ You can also download data from xxx. (We will upload the dataset as soon as poss
 ### 3. Inference the pretrain model
 #### 3.1 Configure some parameters
 ```
-- Code/main/params/const_params.py 
+(1) Code/main/params/const_params.py 
 root_dir = "/your_path_to/ammcnet_os" 
 dataset_dir = "your_root_path_dataset"
 data_dir_gt = "your_root_path_dataset"
 flow_model_path = "your_path"
 cur_goal_tmp = "/your_path_to/ammcnet_os/log"
 
-# (2). Code/main/eval_metric.py 
+(2). Code/main/eval_metric.py 
 DATA_DIR = "your_dataset_root_dir" (same as dataset_dir)
 ```
 #### 3.2 Inference
