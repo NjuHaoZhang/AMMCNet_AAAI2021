@@ -5,11 +5,11 @@ This repo is the official open source of Appearance-Motion Memory Consistency Ne
 ### 1. Setup
 
 ```
-# 1. 建立环境
+# 1. enviroment
 conda env create -f /your_path_to/ammcnet_os/environment.yaml
 
-# 2. 设置必要的变量
-# 1). Code/main/params/const_params.py 设置如下参数
+# 2. setting params
+# 1). Code/main/params/const_params.py 
 root_dir = "/your_path_to/ammcnet_os" 
 dataset_dir = "your_root_path_dataset"
 data_dir_gt = "your_root_path_dataset"
