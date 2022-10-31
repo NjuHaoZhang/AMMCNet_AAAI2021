@@ -55,5 +55,51 @@ python -m Code.main.run_test \
 
 ![shanghaitech](./img/shanghaitech.png)
 
-#### 4 training
-please refer to the shell script in Code/main/scripts/training_com.sh
+### 4 training
+#### shell scripts
+```
+# avenue
+python -m Code.main.run_train  \
+--node xxx \
+--gpu xxx \
+--batch_size xxx \
+--num_workers xxx \
+--mode training \
+--exp_tag xxx \
+--helper_tag xxx \
+--net_tag xxx \
+--loss_tag xxx \
+--data_type xxx \
+--dataset_name avenue
+
+for more details, please refer to the shell script in Code/main/scripts/training_com.sh
+
+#### Training strategies
+> Considering that it is not easy to optimize the whole model
+directly, and it is easy to get a trivial solution, this paper
+proposes a two-stage optimization method consist of pretraining and joint-training. Firstly, we optimized the encoder, decoder, and memory module based on image prediction loss in pixel space and commit Loss in the latent
+space. Based on the per-trained model, we use the same loss
+function to focus on training the appearance-motion feature
+Transfer module(AMFT) and fine-tune the previous module.
+Next, we first introduce the details of the per-train stage, then
+how to optimize whole model and detect an anomalous case
+finally.
+To train the network Encoder, Decoder and Memory
+Pool(AppMemPool and MotMemPool), we normalize the
+intensity of pixels in all frames to [-1, 1] and the size of each
+frame is resized to 256x256 for appearance branch while
+optical-flow branch uses the original 2-channel representation vectors directly. Explicitly, for the appearance branch,
+we set T = 5 and randomly sample T frames rgb images
+and (T-1) frames optical flow map. Adam (Kingma and Ba
+2014) based Stochastic Gradient Descent method is used for
+parameter optimization. The mini-batch size is 16. 80K iterations are performed on one GTX 2080Ti, with learning
+rates of 10-3 and 10-4 in the first 60K and the last 20K iterations. Slightly vary from datasets, the setting of learning
+rate and lamaba of each loss term is set as shown in Table
+1 and 2. Both branches use the strategy of decay learning
+rate(StepLR).
+When finishing the pre-training, we can use AMFT to perform mutual migration and fusion of the high-level features
+of the two modes obtained in the previous stage and then use
+the total loss to optimize the whole model.
+
+
+
