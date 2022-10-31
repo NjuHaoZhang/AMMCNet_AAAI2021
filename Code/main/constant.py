@@ -6,6 +6,12 @@ import configparser
 
 from ..utils import utils
 
+'''
+为了保持一致性：本文件一次性加入全部参数，
+然后模型里具体用什么只取部分即可
+这里尽可能处理好code 实参接受的所有的直接和间接参数 (code内部动态生成的 tmp vriable 就不需要)
+'''
+
 class Const(object):
     class ConstError(TypeError):
         pass
@@ -29,6 +35,7 @@ class Const(object):
 
         return _str
 
+# code启动，argparse会【自动】收集 命令行参数
 def parser_args():
     parser = argparse.ArgumentParser(description='Options to run the network.')
     parser.add_argument('-g', '--gpu', type=str, default='0',
@@ -72,7 +79,7 @@ def parser_args():
     parser.add_argument('--unet_feature_root', type=int,
                         default=64,
                         help='model_params')
-    #
+    # 通用的
     parser.add_argument('--mode', type=str,
                         default='training',
                         help='exp mode: training or testing')
@@ -124,25 +131,30 @@ def parser_args():
                         help='pretrain for training')
     return parser.parse_args()
 
-const = Const() #
-args = parser_args()
+const = Const() # const 这个变量在code收集 【在命令行、文件中设置的参数】并在其他code中使用
+args = parser_args() # 从命令行设置：数据集无关的参数
 
 # ===================================================================== #
+# 全局通用-直接设置的参数 (放到最前面，方便修改不遗漏)
 const.PROJ_ROOT = utils.get_dir('/p300/model_run_result/'
-            'zk8')
+            'zk8')   #（# base_vqvae2_op 和 baseline_vqvae2 对比，重要）
+# (1)组：exp-1 and exp-2: rgb(baseline_vqvae2), op(base_vqvae2_op)
+# (2) exp-3 and exp-4: rgb(base_topk_res_rgb), op(base_topk_res_op)
 #
+# topk_mem_consist, baseline_vqvae2, baseline_vqvae2_op(backup)
 # input image
 const.HEIGHT = 256
 const.WIDTH = 256
 # flownet
-const.FLOWNET_CHECKPOINT = ""
+const.FLOWNET_CHECKPOINT = '/p300/pretain_model/pretrain4FLowNet2_pytorch/' \
+                           'FlowNet2-SD_checkpoint.pth.tar'
 const.FLOW_HEIGHT = 384
 const.FLOW_WIDTH = 512
 const.NUM_CHANNEL = 3
 const.SAMPLE_SIZE = 8
 
 # for training config
-CODEROOT = ""
+CODEROOT = "/root/paper_code/pyt_vad_topk_mem_cons/main"
 const.CONFIG = os.path.join(CODEROOT,
                             "params/const_params.py")
 const.LOG_CONFIG_TRAIN_PATH = os.path.join(CODEROOT,
@@ -150,13 +162,16 @@ const.LOG_CONFIG_TRAIN_PATH = os.path.join(CODEROOT,
 # for testing
 const.LOG_CONFIG_TEST_TPATH = os.path.join(CODEROOT,
                               "logger_config/test_log_config.yaml")
-# train and test
+# 联系 train and test
 const.EXP_TAG_LOG_SAVE =os.path.join(const.PROJ_ROOT, "exp_tag_log.json")
 
 
-config = configparser.ConfigParser()
+config = configparser.ConfigParser()  # 与数据集相关的参数, 需要具体调节
 assert config.read(const.CONFIG)
 
+# ========= 命令行设置的参数，被 const收集 =================================== #
+# 从命令行设置：数据集无关的参数
+# 重要: 区分 train and test mode
 const.MODE = args.mode
 # hardward related
 const.GPU = args.gpu
@@ -182,19 +197,80 @@ const.K = config.getint(const.DATASET, 'K')
 #
 const.EXP_TAG = args.exp_tag # for training and testing
 
+if const.MODE == "training":
+    # ========= 命令行设置的参数，被 const收集 =================================== #
+    const.TRAIN_FOLDER = os.path.join(const.DATA_DIR, args.train_folder)
 
+    # =========== 在config文件中设置 ============================================= #
+    # set training hyper-parameters of different datasets
+
+
+    # lam of loss:
+    # for lp loss. e.g, 1 or 2 for l1 and l2 loss, respectively)
+    const.L_NUM = config.getint(const.DATASET, 'L_NUM')
+    # the power to which each gradient term is raised in GDL loss
+    const.ALPHA_NUM = config.getint(const.DATASET, 'ALPHA_NUM')
+    # the percentage of the adversarial loss to use in the combined loss
+    const.LAM_ADV = config.getfloat(const.DATASET, 'LAM_ADV')
+    # the percentage of the lp loss to use in the combined loss
+    const.LAM_LP = config.getfloat(const.DATASET, 'LAM_LP')
+    # the percentage of the GDL loss to use in the combined loss
+    const.LAM_GDL = config.getfloat(const.DATASET, 'LAM_GDL')
+    # the percentage of the different frame loss
+    const.LAM_FLOW = config.getfloat(const.DATASET, 'LAM_FLOW')
+    # vq_latent_loss
+    const.LAM_LATENT = config.getfloat(const.DATASET, 'LAM_LATENT')
+    const.LAM_OP_L1 = config.getfloat(const.DATASET, 'LAM_OP_L1')
+
+    # Learning rate of generator
+    const.LRATE_G = config.getfloat(const.DATASET, 'LRATE_G')
+    # const.LRATE_G_BOUNDARIES = eval(config.get(const.DATASET, 'LRATE_G_BOUNDARIES'))
+    const.STEP_DECAY_G = config.getint(const.DATASET, 'STEP_DECAY_G')
+
+    # Learning rate of discriminator
+    const.LRATE_D = config.getfloat(const.DATASET, 'LRATE_D')
+    # const.LRATE_D_BOUNDARIES = eval(config.get(const.DATASET, 'LRATE_D_BOUNDARIES'))
+    const.STEP_DECAY_D = config.getint(const.DATASET, 'STEP_DECAY_D')
+
+    # bridge_net params
+    const.PRETRAIN = args.pretrain  # load ckpt for traininng
+
+    # ======== code中补充一些间接参数 ================================================== #
+    const.SAVE_DIR = \
+        '{dataset}_l_{L_NUM}_alpha_{ALPHA_NUM}_lp_{LAM_LP}_' \
+        'adv_{LAM_ADV}_gdl_{LAM_GDL}_flow_{LAM_FLOW}_opL1_{LAM_OP_L1}_' \
+        'embed_dim_{EMBED_DIM}_n_embed_{N_EMBED}_k={K}'.format \
+        (
+            dataset=const.DATASET,
+            L_NUM=const.L_NUM,
+            ALPHA_NUM=const.ALPHA_NUM,
+            LAM_LP=const.LAM_LP, LAM_ADV=const.LAM_ADV,
+            LAM_GDL=const.LAM_GDL, LAM_FLOW=const.LAM_FLOW,LAM_OP_L1=const.LAM_OP_L1,
+            EMBED_DIM=const.EMBED_DIM,
+            N_EMBED=const.N_EMBED,
+            K=const.K
+        )
+    tmp = (const.EXP_TAG, const.SAVE_DIR)
+    utils.save_json(const.EXP_TAG_LOG_SAVE, tmp) # 多process 同时写 会出错，so要加锁(process-level)
+    #
+    const.TRAIN_SAVE_DIR = utils.get_dir(os.path.join(const.PROJ_ROOT, const.SAVE_DIR))
+    #
+    const.TRAIN_SAVE_CKPT = utils.get_dir(os.path.join(const.TRAIN_SAVE_DIR,
+                                                       'training/checkpoints'))
 #
-if const.MODE == "testing":
+elif const.MODE == "testing":
+    # ========= 命令行设置的参数，被 const收集 =================================== #
     const.TEST_FOLDER = os.path.join(const.DATA_DIR, args.test_folder)
     const.EVALUATE = args.evaluate
     const.LOSS_FUNC = args.loss_func
     const.NORMALIZE = args.normalize
     # const.DECIDABLE_IDX = 4
 
-    const.SAVE_DIR = utils.load_json(const.EXP_TAG_LOG_SAVE, const.EXP_TAG) #
+    # ======== code中补充一些间接参数 ================================================== #
+    const.SAVE_DIR = utils.load_json(const.EXP_TAG_LOG_SAVE, const.EXP_TAG) # train对应的params_dir
     print("save_dir: ", const.SAVE_DIR)
     const.TEST_LOAD_CKPT = os.path.join(const.PROJ_ROOT,
-                            const.SAVE_DIR, "training/checkpoints/generator") #
+                            const.SAVE_DIR, "training/checkpoints/generator") # test只用generator
     if args.ckptfile:
         const.TEST_LOAD_CKPT = os.path.join(const.TEST_LOAD_CKPT, args.ckptfile)
     # test_res_save
@@ -202,6 +278,11 @@ if const.MODE == "testing":
     # other params
     # const.PSNRS_DIR = utils.get_dir(os.path.join(const.TEST_RES_SAVE, "psnrs"))
     # const.RES_DICT_FILE = os.path.join(const.TEST_RES_SAVE, "test_result.json")
+else:
+    print("mode error")
+    exit()
+
+# 公用参数-间接设置
 
 path_rgb = os.path.join(const.DATA_DIR,
     "{}/{}/frames".format(const.DATASET, const.MODE))  #
@@ -217,3 +298,5 @@ if args.summary_dir:
 else:
     const.SUMMARY_DIR = utils.get_dir(os.path.join(const.PROJ_ROOT, const.SAVE_DIR, 'summary'))
 
+
+# TODO: 统计不同 model_params 的 best_metric 用另一个统计code
