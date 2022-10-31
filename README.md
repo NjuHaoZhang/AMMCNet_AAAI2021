@@ -71,8 +71,7 @@ python -m Code.main.run_train  \
 --loss_tag xxx \
 --data_type xxx \
 --dataset_name avenue
-
-
+```
 for more details, please refer to the shell script in Code/main/scripts/training_com.sh
 
 #### Training strategies
