@@ -54,3 +54,6 @@ python -m Code.main.run_test \
 ![avenue](./img/avenue.png)
 
 ![shanghaitech](./img/shanghaitech.png)
+
+#### 4 training
+please refer to the shell script in Code/main/scripts/training_com.sh
