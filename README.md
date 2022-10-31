@@ -84,22 +84,6 @@ Transfer module(AMFT) and fine-tune the previous module.
 Next, we first introduce the details of the per-train stage, then
 how to optimize whole model and detect an anomalous case
 finally.
-To train the network Encoder, Decoder and Memory
-Pool(AppMemPool and MotMemPool), we normalize the
-intensity of pixels in all frames to [-1, 1] and the size of each
-frame is resized to 256x256 for appearance branch while
-optical-flow branch uses the original 2-channel representation vectors directly. Explicitly, for the appearance branch,
-we set T = 5 and randomly sample T frames rgb images
-and (T-1) frames optical flow map. Adam (Kingma and Ba
-2014) based Stochastic Gradient Descent method is used for
-parameter optimization. The mini-batch size is 16. 80K iterations are performed on one GTX 2080Ti, with learning
-rates of 10-3 and 10-4 in the first 60K and the last 20K iterations. Slightly vary from datasets, the setting of learning
-rate and lamaba of each loss term is set as shown in Table
-1 and 2. Both branches use the strategy of decay learning
-rate(StepLR).
-When finishing the pre-training, we can use AMFT to perform mutual migration and fusion of the high-level features
-of the two modes obtained in the previous stage and then use
-the total loss to optimize the whole model.
 
 
 
