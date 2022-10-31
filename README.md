@@ -81,9 +81,3 @@ proposes a two-stage optimization method consist of pretraining and joint-traini
 space. Based on the per-trained model, we use the same loss
 function to focus on training the appearance-motion feature
 Transfer module(AMFT) and fine-tune the previous module.
-Next, we first introduce the details of the per-train stage, then
-how to optimize whole model and detect an anomalous case
-finally.
-
-
-
